@@ -3,8 +3,8 @@
 
 terraform {
   backend "s3" {
-    bucket = "tf-dev-terraform-backend-s3"
-    key    = "youngjinterraform.tfstate"
+    bucket = "{your-s3-name}"
+    key    = "{tfstate-name}"
     region = "ap-northeast-2"
   }
 }

@@ -20,7 +20,7 @@ terraform {
 #     region = "ap-northeast-2"
 #   assume_role {
 #     role_arn     = "{role_arn}"
-#     session_name = "pyj-terraform-role-c"
+#     session_name = "{session-name-or-blank}"
 #   }
 # }
 
