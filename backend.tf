@@ -3,7 +3,7 @@
 
 terraform {
   backend "s3" {
-    bucket = "tf-dev-terraform-backend-tokyo-s3"
+    bucket = "{put-your-bucket-name}"
     key    = "testtf"
     region = "ap-northeast-1"
   }
