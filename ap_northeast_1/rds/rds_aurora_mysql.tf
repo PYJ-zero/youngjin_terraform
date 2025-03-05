@@ -1,11 +1,10 @@
 module "cluster" {
   source  = "terraform-aws-modules/rds-aurora/aws"
-  version = "8.3.1"
   
   name           = "${var.project_name}-aurora-mysql"
   engine         = "aurora-mysql"
-  engine_version = "8.0.mysql_aurora.3.02.1"
-  instance_class = "db.r6g.large"
+  engine_version = "8.0.mysql_aurora.3.05.2"
+  instance_class = "db.r7g.large"
   instances = {
     01  = {}
     02  = {}

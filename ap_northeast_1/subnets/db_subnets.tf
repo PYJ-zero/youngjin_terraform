@@ -6,7 +6,7 @@ resource "aws_subnet" "db_subnet_a" {
   //depends_on              = [ module.igw ]
 
   tags = {
-      Name     = "${var.project_name}-subnet-db-ap2a"
+      Name     = "${var.project_name}-subnet-db-${var.region_code}a"
       nat      = "true"
       type     = "private"
   }
@@ -20,7 +20,7 @@ resource "aws_subnet" "db_subnet_c" {
   //depends_on              = [ module.igw ]
 
   tags = {
-      Name     = "${var.project_name}-subnet-db-ap2c"
+      Name     = "${var.project_name}-subnet-db-${var.region_code}c"
       nat      = "false"
       type     = "private"
   }

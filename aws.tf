@@ -3,30 +3,23 @@ terraform {
     aws = {
       source = "hashicorp/aws"
     }
-    random = {
-      source = "hashicorp/random"
-      version = "2.3.0"
-    }
-    template = {
-      source = "hashicorp/template"
-      version = "2.1.2"
-    }
+
   }
 }
 
 ### 환경에 따라 자격 증명 변경 필요###
 ############################################
-# provider "aws" {
-#     region = "ap-northeast-2"
-#   assume_role {
-#     role_arn     = "{role_arn}"
-#     session_name = "{session-name-or-blank}"
-#   }
-# }
-
 provider "aws" {
-  access_key = "{access_key}"
-  secret_key = "{secret_key}"
-  region     = "ap-northeast-2"
+    region = "ap-northeast-1"
+  assume_role {
+    role_arn     = "{put_your_terraform_role_arn}"
+    # session_name = ""
+  }
 }
+
+#provider "aws" {
+#  access_key = "{access_key}"
+#  secret_key = "{secret_key}"
+#  region     = "ap-northeast-2"
+#}
 

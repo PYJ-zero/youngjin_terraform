@@ -6,7 +6,7 @@ resource "aws_subnet" "public_subnet_a" {
   # depends_on              = [ module.igw ]
 
   tags = {
-      Name     = "${var.project_name}-subnet-public-ap2a"
+      Name     = "${var.project_name}-subnet-public-${var.region_code}a"
       nat      = "true"
       type     = "public"
   }
@@ -20,7 +20,7 @@ resource "aws_subnet" "public_subnet_c" {
   # depends_on              = [ module.igw ]
 
   tags = {
-      Name     = "${var.project_name}-subnet-public-ap2c"
+      Name     = "${var.project_name}-subnet-public-${var.region_code}c"
       nat      = "false"
       type     = "public"
   }

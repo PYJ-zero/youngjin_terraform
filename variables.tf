@@ -3,11 +3,11 @@
 variable "project_name" {
   description = "Project Name"
   type = string
-  default     = "youngjin-terraform"
+  default     = "{put-your-project-name}"
 }
 
 variable "region_code" {
   description = "Region code"
   type = string
-  default = "ap-northeast-2"
+  default = "ap-northeast-1"
 }

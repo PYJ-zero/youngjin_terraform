@@ -1,6 +1,5 @@
 module "endpoints" {
   source = "terraform-aws-modules/vpc/aws//modules/vpc-endpoints"
-
   vpc_id             = var.vpc_id
 
   endpoints = {
@@ -8,7 +7,7 @@ module "endpoints" {
       service         = "s3"
       endpoints       = "gateway"
       route_table_ids = ["${var.route_table.id}"]
-      tags            = { Name = "prd-youngjin-s3-endpoint" }
+      tags            = { Name = "${var.project_name}-youngjin-s3-endpoint" }
     },
   }
 }

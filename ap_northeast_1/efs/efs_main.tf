@@ -1,7 +1,7 @@
 module "efs" {
   source = "terraform-aws-modules/efs/aws"
 
-  name           = "${var.project_name}efs-01"
+  name           = "${var.project_name}-efs-01"
   encrypted      = true
 
   performance_mode                = "generalPurpose"
@@ -15,15 +15,15 @@ module "efs" {
   bypass_policy_lockout_safety_check = false
 
   mount_targets = {
-    "ap-northeast-2a" = {
-      subnet_id = "${var.subnets.private_pri_a_subnets.id}"
+    "${var.region_code}a" = {
+      subnet_id = var.subnets.private_pri_a_subnets.id
     }
-    "ap-northeast-2c" = {
-      subnet_id = "${var.subnets.private_pri_c_subnets.id}"
+    "${var.region_code}c" = {
+      subnet_id = var.subnets.private_pri_c_subnets.id
     }
   }
   security_group_description = "Youngjin EFS SG"
-  security_group_vpc_id      = "${var.vpc_id}"
+  security_group_vpc_id      = var.vpc_id
   security_group_rules = {
     vpc = {
       description = "EFS Inbound SG Rule"
