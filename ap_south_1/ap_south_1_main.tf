@@ -69,24 +69,26 @@ module "eks" {
   project_name   = var.project_name
   subnets        = module.subnets.subnet_list
   vpc_id         = aws_vpc.vpc.id
-}
-
-module "rds" {
-  source         = "./rds"
-  project_name   = var.project_name
-  subnets        = module.subnets.subnet_list
-  vpc_id         = aws_vpc.vpc.id
-  db_subnet      = module.subnets.db_subnet
-}
-
-module "efs" {
-  source         = "./efs"
-  project_name   = var.project_name
-  subnets        = module.subnets.subnet_list
-  region_code    = var.region_code
-  vpc_id         = aws_vpc.vpc.id
+  iam_roles      = module.iam.iam_roles
   security_groups = module.security_group.security_groups
-} 
+}
+
+# module "rds" {
+#   source         = "./rds"
+#   project_name   = var.project_name
+#   subnets        = module.subnets.subnet_list
+#   vpc_id         = aws_vpc.vpc.id
+#   db_subnet      = module.subnets.db_subnet
+# }
+
+# module "efs" {
+#   source         = "./efs"
+#   project_name   = var.project_name
+#   subnets        = module.subnets.subnet_list
+#   region_code    = var.region_code
+#   vpc_id         = aws_vpc.vpc.id
+#   security_groups = module.security_group.security_groups
+# } 
 
 # module "redis" {
 #   source         = "./redis"
@@ -97,12 +99,12 @@ module "efs" {
 #   security_groups   = module.security_group.security_groups
 # }
 
-module "endpoint" {
-  source         = "./endpoint"
-  project_name   = var.project_name
-  vpc_id         = aws_vpc.vpc.id
-  route_table    = module.route_table.private_rtb
-}
+# module "endpoint" {
+#   source         = "./endpoint"
+#   project_name   = var.project_name
+#   vpc_id         = aws_vpc.vpc.id
+#   route_table    = module.route_table.private_rtb
+# }
 
 module "ec2" {
   source         = "./ec2"
@@ -110,12 +112,20 @@ module "ec2" {
   subnets        = module.subnets.subnet_list
   region_code    = var.region_code
   vpc_id         = aws_vpc.vpc.id
+  eks_cluster    = module.eks.eks
   security_groups = module.security_group.security_groups
-  iam_instance_profile = module.iam.iam_role.ssm_instance_profile
-  depends_on     = [module.subnets, module.iam]
+  iam_ssm_profile = module.iam.iam_roles.ssm_instance_profile
 }
 
 module "iam" {
   source        = "./iam"
   project_name  = var.project_name
 }
+
+# module "elb" {
+#   source         = "./elb"
+#   project_name   = var.project_name
+#   subnets        = module.subnets.subnet_list
+#   vpc_id         = aws_vpc.vpc.id
+#   security_groups = module.security_group.security_groups
+# }

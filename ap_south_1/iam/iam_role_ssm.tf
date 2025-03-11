@@ -1,6 +1,6 @@
 # (1) IAM 역할 생성
 resource "aws_iam_role" "ssm_role" {
-  name = "${var.project_name}-ssm-role"
+  name = "${var.project_name}-role-ssm"
   assume_role_policy = jsonencode({
     Version = "2012-10-17",
     Statement = [
@@ -19,6 +19,18 @@ resource "aws_iam_role" "ssm_role" {
 resource "aws_iam_role_policy_attachment" "ssm_policy_attachment" {
   role       = aws_iam_role.ssm_role.name
   policy_arn = "arn:aws:iam::aws:policy/AmazonSSMManagedInstanceCore"
+}
+resource "aws_iam_role_policy_attachment" "bastion_attach_eks_full" {
+  role       = aws_iam_role.ssm_role.name
+  policy_arn = "arn:aws:iam::aws:policy/AmazonEKSClusterPolicy"
+}
+resource "aws_iam_role_policy_attachment" "bastion_attach_eks_describe" {
+  role       = aws_iam_role.ssm_role.name
+  policy_arn = "arn:aws:iam::aws:policy/AmazonEKSWorkerNodePolicy"
+}
+resource "aws_iam_role_policy_attachment" "bastion_attach_iam_full" {
+  role       = aws_iam_role.ssm_role.name
+  policy_arn = "arn:aws:iam::aws:policy/IAMFullAccess"
 }
 
 # (3) 인스턴스 프로파일 생성

@@ -12,15 +12,6 @@ variable "subnets" {
   type        = any
 }
 
-variable "region_code" {
-  description = "Region Code"
-  type        = string
-  }
-
 variable "security_groups" {
   type = any
 }
-
-variable "iam_instance_profile" {
-  type = any
-  }

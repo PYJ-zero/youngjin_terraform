@@ -12,3 +12,11 @@ variable "project_name" {
   description = "Project Name"
   type        = string
 }
+variable "iam_roles" {
+  description = "IAM Role 목록"
+  type        = any
+}
+
+variable "security_groups" {
+  type = any
+}

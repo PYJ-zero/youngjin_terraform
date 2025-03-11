@@ -4,8 +4,9 @@ resource "aws_subnet" "private_pri_subnet_a" {
   cidr_block        = "150.0.30.0/24"
 
   tags = {
-      Name     = "${var.project_name}-subnet-service-${var.region_code}a"
+      Name     = "${var.project_name}-pri-subnet-${var.region_code}a"
       type     = "private"
+      "kubernetes.io/role/internal-elb" = "1"
   }
 }
 
@@ -15,7 +16,8 @@ resource "aws_subnet" "private_pri_subnet_c" {
   cidr_block        = "150.0.40.0/24"
 
   tags = {
-      Name     = "${var.project_name}-subnet-service-${var.region_code}c"
+      Name     = "${var.project_name}-pri-subnet-${var.region_code}c"
       type     = "private"
+      "kubernetes.io/role/internal-elb" = "1"
   }
 }

@@ -1,8 +1,3 @@
-locals {
-  redis_sg_name  = "${var.project_name}-redis-sg"
-  redis_sg_desc  = local.redis_sg_name
-}
-
 // 보안 그룹 생성
 resource "aws_security_group" "redis_sg" {
   vpc_id      = var.vpc_id
@@ -30,7 +25,7 @@ resource "aws_security_group_rule" "redis_sg_rule_ingress_0" {
   from_port   = 6379
   to_port     = 6379
   cidr_blocks = ["150.0.0.0/16"]
-  description = "redis sg"
+  description = "redis sg ${local.description_suffix}"
   lifecycle {
     ignore_changes = [
       # description,
@@ -45,7 +40,7 @@ resource "aws_security_group_rule" "redis_sg_rule_egress_0" {
   from_port   = 3306
   to_port     = 3306
   cidr_blocks = ["150.0.0.0/16"]
-  description = "redis sg to rds"
+  description = "redis sg to rds ${local.description_suffix}"
   lifecycle {
     ignore_changes = [
       # description,

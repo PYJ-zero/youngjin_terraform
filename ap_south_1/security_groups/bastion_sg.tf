@@ -1,8 +1,3 @@
-locals {
-    bastion_sg_name  = "${var.project_name}-bastion-sg"
-    bastion_sg_desc  = local.bastion_sg_name
-}
-
 // 보안 그룹 생성
 resource "aws_security_group" "bastion_sg" {
   vpc_id      = var.vpc_id
@@ -29,7 +24,7 @@ resource "aws_security_group_rule" "bastion_sg_rule_egress_0" {
   from_port   = 443
   to_port     = 443
   cidr_blocks = ["0.0.0.0/0"]
-  description = "sg for bastion"
+  description = "sg for bastion ${local.description_suffix}"
   lifecycle {
     ignore_changes = [
       # description,

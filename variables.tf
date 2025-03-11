@@ -3,11 +3,11 @@
 variable "project_name" {
   description = "Project Name"
   type = string
-  default     = "{put-your-project-name}"
+  default     = "tf-dev-pyj"
 }
 
 variable "region_code" {
   description = "Region code"
   type = string
-  default = "ap-northeast-1"
+  default = "ap-south-1"
 }
