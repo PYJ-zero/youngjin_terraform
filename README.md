@@ -39,6 +39,10 @@ module을 삭제한 상태이기에 실제 작동시 모듈 설치가 동반됩�
    Backend는 Terraform Cloud를 사용하며 워크스페이스 및 프로젝트를 생성합니다.
    Variables에 AWS Access Key 및 Secret Key를 등록하여 사용합니다.
 
+3. Backend 변경
+   backend.tf에서 terraform cloud의 org 및 workspace의 이름을 넣어줍니다.
+   variables.tf의 project_name을 변경해 줍니다.
+
 3. 테라폼 초기화
    ```bash
    terraform init
