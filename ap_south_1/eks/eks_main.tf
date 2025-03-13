@@ -20,25 +20,12 @@ module "eks" {
 
   bootstrap_self_managed_addons = true
   cluster_addons = {
-    coredns = {
-      addon_version     = "v1.11.5-eksbuild.1"
-      resolve_conflicts = "OVERWRITE"
+    coredns = {}
+    kube-proxy = {}
+    vpc-cni = {}
+    aws-ebs-csi-driver = {}
     }
-
-    kube-proxy = {
-      addon_version = "v1.29.2-eksbuild.1"
-    }
-
-    vpc-cni = {
-      addon_version            = "v1.18.5-eksbuild.1"
-      resolve_conflicts        = "OVERWRITE"
-    }
-
-    aws-ebs-csi-driver = {
-      addon_version            = "v1.35.0-eksbuild.1"
-      resolve_conflicts        = "OVERWRITE"
-    }
-  }
+  
   # Bastion에서 EKS API 서버(443)에 접근할 수 있도록 추가 규칙 추가
   cluster_security_group_additional_rules = {
     bastion_access = {
