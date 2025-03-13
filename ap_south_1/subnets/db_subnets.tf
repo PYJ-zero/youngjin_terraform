@@ -6,9 +6,9 @@ resource "aws_subnet" "db_subnet_a" {
   //depends_on              = [ module.igw ]
 
   tags = {
-      Name     = "${var.project_name}-db-subnet-${var.region_code}a"
-      nat      = "true"
-      type     = "private"
+    Name = "${var.project_name}-db-subnet-${var.region_code}a"
+    nat  = "true"
+    type = "private"
   }
 }
 
@@ -20,13 +20,13 @@ resource "aws_subnet" "db_subnet_c" {
   //depends_on              = [ module.igw ]
 
   tags = {
-      Name     = "${var.project_name}-db-subnet-${var.region_code}c"
-      nat      = "false"
-      type     = "private"
+    Name = "${var.project_name}-db-subnet-${var.region_code}c"
+    nat  = "false"
+    type = "private"
   }
 }
 
-resource "aws_db_subnet_group" "db_subnet"{
-  name        = "${var.project_name}-db-subnet"
-  subnet_ids  = [for subnet in var.subnets.db_subnets : subnet.id]
+resource "aws_db_subnet_group" "db_subnet" {
+  name       = "${var.project_name}-db-subnet"
+  subnet_ids = [for subnet in var.subnets.db_subnets : subnet.id]
 }

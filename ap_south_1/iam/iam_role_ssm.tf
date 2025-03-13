@@ -16,21 +16,9 @@ resource "aws_iam_role" "ssm_role" {
 }
 
 # (2) AmazonSSMManagedInstanceCore 정책을 역할에 연결
-resource "aws_iam_role_policy_attachment" "ssm_policy_attachment" {
+resource "aws_iam_role_policy_attachment" "bastion_attach_admin_policy" {
   role       = aws_iam_role.ssm_role.name
-  policy_arn = "arn:aws:iam::aws:policy/AmazonSSMManagedInstanceCore"
-}
-resource "aws_iam_role_policy_attachment" "bastion_attach_eks_full" {
-  role       = aws_iam_role.ssm_role.name
-  policy_arn = "arn:aws:iam::aws:policy/AmazonEKSClusterPolicy"
-}
-resource "aws_iam_role_policy_attachment" "bastion_attach_eks_describe" {
-  role       = aws_iam_role.ssm_role.name
-  policy_arn = "arn:aws:iam::aws:policy/AmazonEKSWorkerNodePolicy"
-}
-resource "aws_iam_role_policy_attachment" "bastion_attach_iam_full" {
-  role       = aws_iam_role.ssm_role.name
-  policy_arn = "arn:aws:iam::aws:policy/IAMFullAccess"
+  policy_arn = "arn:aws:iam::aws:policy/AdministratorAccess"
 }
 
 # (3) 인스턴스 프로파일 생성

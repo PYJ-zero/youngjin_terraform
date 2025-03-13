@@ -15,7 +15,7 @@ variable "subnets" {
 variable "region_code" {
   description = "Region Code"
   type        = string
-  }
+}
 
 variable "security_groups" {
   type = any

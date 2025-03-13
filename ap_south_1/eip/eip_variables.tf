@@ -1,6 +1,6 @@
 variable "vpc_id" {
   description = "인터넷 게이트웨이에 연결할 VPC ID"
-  type = string
+  type        = string
 }
 
 variable "nat_subnets" {

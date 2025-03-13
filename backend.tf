@@ -8,13 +8,13 @@
 #     region = "ap-south-1"
 #   }
 # }
-terraform { 
-  cloud { 
-    
-    organization = {your-org-name}
+terraform {
+  cloud {
 
-    workspaces { 
-      name = {your-workspace-name}
-    } 
-  } 
+    organization = "youngjinOrg"
+
+    workspaces {
+      name = "youngjin-ws-local"
+    }
+  }
 }

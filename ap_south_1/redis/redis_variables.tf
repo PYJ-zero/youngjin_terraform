@@ -15,7 +15,7 @@ variable "db_subnet" {
 
 variable "region_code" {
   description = "Region code"
-  type = string
+  type        = string
 }
 
 variable "security_groups" {

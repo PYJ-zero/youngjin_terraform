@@ -1,6 +1,6 @@
 variable "project_name" {
   description = "Project Name"
-  type = string
+  type        = string
 }
 
 variable "vpc_id" {
@@ -10,10 +10,10 @@ variable "vpc_id" {
 
 variable "region_code" {
   description = "Region code"
-  type = string
+  type        = string
 }
 
-variable "subnets"{
+variable "subnets" {
   description = "subnet_list"
-  type = any
+  type        = any
 }

@@ -1,13 +1,13 @@
 # ALB 생성
 module "alb" {
   source  = "terraform-aws-modules/alb/aws"
-  version = "~> 8.0"   # 사용 중인 모듈 버전에 맞게 수정
+  version = "~> 8.0" # 사용 중인 모듈 버전에 맞게 수정
 
-  name                = "${var.project_name}-alb"
-  load_balancer_type  = "application"
-  internal            = false
-  subnets             = [for subnet in var.subnets.public_pub_subnets.id : subnet.id]     # 퍼블릭 서브넷 ID 목록
-  security_groups     = [var.security_groups.alb_sg.id]         # ALB에 적용할 보안 그룹 ID
+  name               = "${var.project_name}-alb"
+  load_balancer_type = "application"
+  internal           = false
+  subnets            = [for subnet in var.subnets.public_pub_subnets.id : subnet.id] # 퍼블릭 서브넷 ID 목록
+  security_groups    = [var.security_groups.alb_sg.id]                               # ALB에 적용할 보안 그룹 ID
 
 }
 

@@ -1,11 +1,11 @@
 module "efs" {
   source = "terraform-aws-modules/efs/aws"
 
-  name           = "${var.project_name}-efs-01"
-  encrypted      = true
+  name      = "${var.project_name}-efs-01"
+  encrypted = true
 
-  performance_mode                = "generalPurpose"
-  throughput_mode                 = "bursting"
+  performance_mode = "generalPurpose"
+  throughput_mode  = "bursting"
 
   lifecycle_policy = {
     transition_to_ia = "AFTER_30_DAYS"
@@ -47,6 +47,6 @@ module "efs" {
   enable_backup_policy = true
 
   tags = {
-    Terraform   = "true"
+    Terraform = "true"
   }
 }

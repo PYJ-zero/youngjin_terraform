@@ -4,12 +4,15 @@
 module을 삭제한 상태이기에 실제 작동시 모듈 설치가 동반됩니다.
 
 ## 기능
+
 1. EKS Cluster와 연동할 수 있도록 모든 설정이 자동화 되어 있습니다.
+
 - EKS 접근용 Bastion 생성 및 보안 그룹 연결
 - Bastion 내 kubectl 및 eks config 설정
 - EKS configMap 내 aws-auth 설정
 
 ## 특이사항
+
 테스트 용도 목적으로 비용이 저렴한 뭄바이(ap-south-1)을 기준으로 리소스를 생성합니다.
 
 ## 주요 파일 및 디렉토리
@@ -31,18 +34,24 @@ module을 삭제한 상태이기에 실제 작동시 모듈 설치가 동반됩�
 ### 초기 설정
 
 1. 저장소를 클론합니다:
+
    ```bash
    git clone https://github.com/PYJ-zero/youngjin_terraform.git
    cd youngjin_terraform
 
-2. Terraform Cloud 연동
+2. IAM User 생성
+   Terraform 사용을 위해 IAM User 및 Access Key를 생성합니다.
+
+3. Terraform Cloud 연동
+   <https://developer.hashicorp.com/terraform/cli/cloud/settings>
    Backend는 Terraform Cloud를 사용하며 워크스페이스 및 프로젝트를 생성합니다.
    Variables에 AWS Access Key 및 Secret Key를 등록하여 사용합니다.
 
-3. Backend 변경
+4. Backend 변경
    backend.tf에서 terraform cloud의 org 및 workspace의 이름을 넣어줍니다.
    variables.tf의 project_name을 변경해 줍니다.
 
-3. 테라폼 초기화
+5. 테라폼 초기화
+
    ```bash
    terraform init

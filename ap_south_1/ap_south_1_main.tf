@@ -2,60 +2,60 @@
 #########################################################################
 
 resource "aws_vpc" "vpc" {
-    cidr_block = "150.0.0.0/16"
-    enable_dns_hostnames = true
-    enable_dns_support   = true
+  cidr_block           = "150.0.0.0/16"
+  enable_dns_hostnames = true
+  enable_dns_support   = true
   tags = {
-      Name     = "${var.project_name}-EKS-CICD-TEST-VPC"
+    Name = "${var.project_name}-EKS-CICD-TEST-VPC"
   }
 }
 
 module "subnets" {
-  source         = "./subnets"
-  project_name   = var.project_name
-  vpc_id         = aws_vpc.vpc.id
-  region_code    = var.region_code
-  subnets        = module.subnets.subnet_list
+  source       = "./subnets"
+  project_name = var.project_name
+  vpc_id       = aws_vpc.vpc.id
+  region_code  = var.region_code
+  subnets      = module.subnets.subnet_list
 }
 
 module "security_group" {
-  source         = "./security_groups"
-  project_name   = var.project_name
-  vpc_id         = aws_vpc.vpc.id
+  source       = "./security_groups"
+  project_name = var.project_name
+  vpc_id       = aws_vpc.vpc.id
 }
 
 module "igw" {
-  source         = "./igw"
-  depends_on     = [module.subnets]
-  vpc_id         = aws_vpc.vpc.id
-  project_name   = var.project_name
+  source       = "./igw"
+  depends_on   = [module.subnets]
+  vpc_id       = aws_vpc.vpc.id
+  project_name = var.project_name
 }
 
 module "eip" {
-  source         = "./eip"
-  project_name   = var.project_name
-  depends_on     = [module.subnets]
-  vpc_id         = aws_vpc.vpc.id
-  nat_subnets    = module.subnets.subnet_list.private_nat_subnets
+  source       = "./eip"
+  project_name = var.project_name
+  depends_on   = [module.subnets]
+  vpc_id       = aws_vpc.vpc.id
+  nat_subnets  = module.subnets.subnet_list.private_nat_subnets
 }
 
 module "nat" {
-  source         = "./nat"
-  project_name   = var.project_name
-  depends_on     = [module.eip]
-  nat_subnets    = module.subnets.subnet_list.private_nat_subnets
-  nat_eip        = module.eip.nat_eip
-  vpc_id         = aws_vpc.vpc.id
+  source       = "./nat"
+  project_name = var.project_name
+  depends_on   = [module.eip]
+  nat_subnets  = module.subnets.subnet_list.private_nat_subnets
+  nat_eip      = module.eip.nat_eip
+  vpc_id       = aws_vpc.vpc.id
 }
 
 module "route_table" {
-  source         = "./route_table"
-  project_name   = var.project_name
-  depends_on     = [module.subnets]
-  vpc_id         = aws_vpc.vpc.id
-  igw_id         = module.igw.igw_id
-  nat            = module.nat.nat
-  subnets        = module.subnets.subnet_list
+  source       = "./route_table"
+  project_name = var.project_name
+  depends_on   = [module.subnets]
+  vpc_id       = aws_vpc.vpc.id
+  igw_id       = module.igw.igw_id
+  nat          = module.nat.nat
+  subnets      = module.subnets.subnet_list
 }
 
 # module "s3"{
@@ -65,11 +65,11 @@ module "route_table" {
 # }
 
 module "eks" {
-  source         = "./eks"
-  project_name   = var.project_name
-  subnets        = module.subnets.subnet_list
-  vpc_id         = aws_vpc.vpc.id
-  iam_roles      = module.iam.iam_roles
+  source          = "./eks"
+  project_name    = var.project_name
+  subnets         = module.subnets.subnet_list
+  vpc_id          = aws_vpc.vpc.id
+  iam_roles       = module.iam.iam_roles
   security_groups = module.security_group.security_groups
 }
 
@@ -107,19 +107,19 @@ module "eks" {
 # }
 
 module "ec2" {
-  source         = "./ec2"
-  project_name   = var.project_name
-  subnets        = module.subnets.subnet_list
-  region_code    = var.region_code
-  vpc_id         = aws_vpc.vpc.id
-  eks_cluster    = module.eks.eks
+  source          = "./ec2"
+  project_name    = var.project_name
+  subnets         = module.subnets.subnet_list
+  region_code     = var.region_code
+  vpc_id          = aws_vpc.vpc.id
+  eks_cluster     = module.eks.eks
   security_groups = module.security_group.security_groups
   iam_ssm_profile = module.iam.iam_roles.ssm_instance_profile
 }
 
 module "iam" {
-  source        = "./iam"
-  project_name  = var.project_name
+  source       = "./iam"
+  project_name = var.project_name
 }
 
 # module "elb" {

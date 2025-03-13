@@ -1,9 +1,9 @@
 variable "project_name" {
   description = "Project Name"
-  type = string
+  type        = string
 }
 
 variable "s3_list" {
   description = "s3 list"
-  type = any
+  type        = any
 }

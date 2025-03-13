@@ -1,8 +1,8 @@
 module "this" {
-  source  = "cloudposse/label/null"
-  namespace  = "prd"
-  stage      = "youngjin"
-  name       = "redis-cluster-01"
+  source    = "cloudposse/label/null"
+  namespace = "prd"
+  stage     = "youngjin"
+  name      = "redis-cluster-01"
 }
 
 module "redis" {

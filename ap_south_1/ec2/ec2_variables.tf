@@ -15,7 +15,7 @@ variable "subnets" {
 variable "region_code" {
   description = "Region Code"
   type        = string
-  }
+}
 
 variable "security_groups" {
   type = any
@@ -23,7 +23,7 @@ variable "security_groups" {
 
 variable "iam_ssm_profile" {
   type = any
-  }
+}
 
 variable "eks_cluster" {
   type = any

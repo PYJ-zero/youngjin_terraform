@@ -4,9 +4,9 @@ resource "aws_security_group" "bastion_sg" {
   name        = local.bastion_sg_name
   description = local.bastion_sg_desc
 
-  tags        = {
-    Name       = local.bastion_sg_name
-    t_addr     = "${path.module}/bastion.sg.tf"
+  tags = {
+    Name   = local.bastion_sg_name
+    t_addr = "${path.module}/bastion.sg.tf"
   }
   lifecycle {
     ignore_changes = [
@@ -20,11 +20,11 @@ resource "aws_security_group" "bastion_sg" {
 resource "aws_security_group_rule" "bastion_sg_rule_egress_0" {
   security_group_id = aws_security_group.bastion_sg.id
   type              = "egress"
-  protocol    = "tcp"
-  from_port   = 443
-  to_port     = 443
-  cidr_blocks = ["0.0.0.0/0"]
-  description = "sg for bastion ${local.description_suffix}"
+  protocol          = "tcp"
+  from_port         = 443
+  to_port           = 443
+  cidr_blocks       = ["0.0.0.0/0"]
+  description       = "sg for bastion ${local.description_suffix}"
   lifecycle {
     ignore_changes = [
       # description,
