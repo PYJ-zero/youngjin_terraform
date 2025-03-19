@@ -13,9 +13,9 @@ module "cluster" {
   autoscaling_min_capacity = 2
   autoscaling_max_capacity = 5
   skip_final_snapshot      = true
-  database_name            = "yougnjindb"
-  master_username          = "yougnjin"
-  master_password          = "test123!@#"
+  database_name            = {put-your-db-name-here}
+  master_username          = {put-your-db-username-here}
+  master_password          = {put-your-db-password-here}
 
   vpc_id               = var.vpc_id
   db_subnet_group_name = var.db_subnet.db_subnet.name

@@ -16,6 +16,7 @@ module "subnets" {
   vpc_id       = aws_vpc.vpc.id
   region_code  = var.region_code
   subnets      = module.subnets.subnet_list
+  eks_output   = module.eks.eks
 }
 
 module "security_group" {
@@ -58,11 +59,11 @@ module "route_table" {
   subnets      = module.subnets.subnet_list
 }
 
-# module "s3"{
-#   source = "./s3"
-#   project_name  = var.project_name
-#   s3_list       = module.s3.s3_list
-# }
+module "s3"{
+  source = "./s3"
+  project_name  = var.project_name
+  s3_list       = module.s3.s3_list
+}
 
 module "eks" {
   source          = "./eks"
@@ -115,11 +116,14 @@ module "ec2" {
   eks_cluster     = module.eks.eks
   security_groups = module.security_group.security_groups
   iam_ssm_profile = module.iam.iam_roles.ssm_instance_profile
+  iam_users       = module.iam.iam_users
+  s3_list         = module.s3.s3_list
 }
 
 module "iam" {
   source       = "./iam"
   project_name = var.project_name
+  s3_list      = module.s3.s3_list
 }
 
 # module "elb" {

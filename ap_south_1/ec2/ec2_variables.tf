@@ -28,3 +28,12 @@ variable "iam_ssm_profile" {
 variable "eks_cluster" {
   type = any
 }
+
+variable "iam_users" {
+  type = any
+}
+
+variable "s3_list" {
+  type = any
+  
+}

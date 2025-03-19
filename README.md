@@ -3,17 +3,32 @@
 이 저장소는 Terraform을 사용하여 AWS 인프라를 코드로 관리하기 위한 예제 프로젝트입니다.
 module을 삭제한 상태이기에 실제 작동시 모듈 설치가 동반됩니다.
 
-## 기능
+# 목차
+ 1. 프로젝트 개요 
+ 2. 구조 및 구성 요소
+ 3. 사용 방법
+ 4. 주요 파일/디렉토리 설명
+ 5. 구동 예시
+ 6. 주의 사항
 
-1. EKS Cluster와 연동할 수 있도록 모든 설정이 자동화 되어 있습니다.
+# 프로젝트 개요 및 기능
 
-- EKS 접근용 Bastion 생성 및 보안 그룹 연결
-- Bastion 내 kubectl 및 eks config 설정
-- EKS configMap 내 aws-auth 설정
+• 목적:
+ • AWS 상에서 EKS 클러스터를 자동으로 구성하고, Bastion EC2, RDS, Redis, S3 버킷 등을 원하는 대로 생성할 수 있습니다.
+ • 모든 리소스는 모듈화되어 있어, 필요한 부분만 활성화/비활성화하여 확장 가능합니다.
+
+• 특징:
+ • Terraform 모듈을 통해 VPC, 서브넷, NAT, 보안 그룹, IAM 등 AWS 리소스를 체계적으로 관리
+ • EKS Managed Node Group를 이용한 Kubernetes 노드 자동 관리
+ • **Add-ons (vpc-cni, kube-proxy, coredns)**를 Terraform에서 함께 설정
+ • Velero 백업용 IAM User & S3 버킷(옵션)
+ • 보안 그룹 및 IAM Role 등 기본 정책 설정
+
+# 구조 및 구성 요소
 
 ## 특이사항
 
-테스트 용도 목적으로 비용이 저렴한 뭄바이(ap-south-1)을 기준으로 리소스를 생성합니다.
+- 테스트 용도 목적으로 비용이 저렴한 뭄바이(ap-south-1)을 기준으로 리소스를 생성합니다.
 
 ## 주요 파일 및 디렉토리
 

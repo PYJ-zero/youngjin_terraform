@@ -17,3 +17,8 @@ variable "subnets" {
   description = "subnet_list"
   type        = any
 }
+
+variable "eks_output"{
+  description = "eks_list"
+  type        = any
+}

@@ -6,3 +6,9 @@ output "iam_roles" {
     ssm_instance_profile = aws_iam_instance_profile.ssm_instance_profile
   }
 }
+
+output "iam_users" {
+  value = {
+    velero_user = aws_iam_access_key.velero
+  }
+}
