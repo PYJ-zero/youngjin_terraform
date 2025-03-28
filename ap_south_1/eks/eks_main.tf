@@ -11,7 +11,7 @@ module "eks" {
   cluster_name    = "${var.project_name}-eks-cluster-01"
   vpc_id          = var.vpc_id
   subnet_ids      = [for subnet in var.subnets.eks_subnets : subnet.id]
-  cluster_version = "1.28"
+  cluster_version = "1.29"
 
   cluster_endpoint_public_access  = true
   cluster_endpoint_private_access = true
@@ -37,26 +37,23 @@ module "eks" {
   eks_managed_node_groups = {
     "${var.project_name}-nodegroup-1" = {
       # Starting on 1.30, AL2023 is the default AMI type for EKS managed node groups
-      ami_type               = "BOTTLEROCKET_x86_64"
+      # ami_type = "BOTTLEROCKET_x86_64"
+      ami_type = "AL2_x86_64"
       # ami_id                 = local.custom_ami_id
-      instance_types         = ["t3a.small"]
+      instance_types = ["t3a.large"]
 
       create_worker_iam_role = false
       worker_iam_role_arn    = var.iam_roles.eks_node_role.arn
       name                   = "${var.project_name}-ng-1"
       create_launch_template = true
       launch_template_name   = "${var.project_name}-ng-1-lt"
-      
-      subnet_ids             = [for subnet in var.subnets.private_pri_subnets : subnet.id]
-      bottlerocket_settings = {
-        kubernetes = {
-          # 여기서 max_pods 값을 원하는 숫자로 설정
-          max_pods = 110
-        }
-      }
-      min_size     = 6
-      max_size     = 6
-      desired_size = 6
+
+      subnet_ids = [for subnet in var.subnets.private_pri_subnets : subnet.id]
+      # Amazon Linux 2 node groups do not require a specific settings block.
+      # Any custom configuration (e.g. user data modifications) should be handled via a launch template if needed.
+      min_size     = 3
+      max_size     = 3
+      desired_size = 3
     }
   }
 
@@ -86,11 +83,25 @@ module "eks" {
     Project = "${var.project_name}-eks-cluster"
   }
 }
+resource "aws_eks_addon" "ebs_csi" {
+  cluster_name                = module.eks.cluster_name
+  addon_name                  = "aws-ebs-csi-driver"
+  addon_version               = "v1.36.0-eksbuild.1"
+  resolve_conflicts_on_create = "OVERWRITE"
+  depends_on                  = [module.eks]
+}
 
+resource "aws_eks_addon" "efs_csi" {
+  cluster_name                = module.eks.cluster_name
+  addon_name                  = "aws-efs-csi-driver"
+  addon_version               = "v2.0.8-eksbuild.1"
+  resolve_conflicts_on_create = "OVERWRITE"
+  depends_on                  = [module.eks]
+}
 resource "aws_eks_addon" "coredns" {
   cluster_name                = module.eks.cluster_name
   addon_name                  = "coredns"
-  addon_version               = "v1.10.1-eksbuild.18"
+  addon_version               = "v1.11.3-eksbuild.1"
   resolve_conflicts_on_create = "OVERWRITE"
   depends_on                  = [module.eks]
 }
@@ -98,7 +109,7 @@ resource "aws_eks_addon" "coredns" {
 resource "aws_eks_addon" "kube_proxy" {
   cluster_name                = module.eks.cluster_name
   addon_name                  = "kube-proxy"
-  addon_version               = "v1.28.15-eksbuild.4"
+  addon_version               = "v1.29.7-eksbuild.5"
   resolve_conflicts_on_create = "OVERWRITE"
   depends_on                  = [module.eks]
 }

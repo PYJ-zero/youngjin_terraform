@@ -13,7 +13,7 @@ data "aws_ami" "amazon_linux_2023" {
   filter {
     name   = "architecture"
     values = ["x86_64"]
-  }  
+  }
 }
 
 # 2. EC2 인스턴스 생성 모듈
@@ -112,7 +112,7 @@ module "ec2_instance" {
   CRED
   "
 
-  # velero install
+  # velero instal
   run_command "velero install \
     --provider aws \
     --plugins velero/velero-plugin-for-aws:v1.11.1 \
