@@ -11,10 +11,10 @@
 terraform {
   cloud {
 
-    organization = {your-org-name}
+    organization = "youngjinOrg"
 
     workspaces {
-      name = {your-workspace-name}
+      name = "youngjin-ws-local"
     }
   }
 }

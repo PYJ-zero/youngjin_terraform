@@ -11,7 +11,7 @@ module "eks" {
   cluster_name    = "${var.project_name}-eks-cluster-01"
   vpc_id          = var.vpc_id
   subnet_ids      = [for subnet in var.subnets.eks_subnets : subnet.id]
-  cluster_version = "1.31"
+  cluster_version = "1.30"
 
   cluster_endpoint_public_access  = true
   cluster_endpoint_private_access = true
@@ -110,7 +110,7 @@ resource "aws_eks_addon" "coredns" {
 resource "aws_eks_addon" "kube_proxy" {
   cluster_name                = module.eks.cluster_name
   addon_name                  = "kube-proxy"
-  addon_version               = "v1.30.6-eksbuild.5"
+  addon_version               = "v1.30.6-eksbuild.3"
   resolve_conflicts_on_create = "OVERWRITE"
   depends_on                  = [module.eks]
 }
