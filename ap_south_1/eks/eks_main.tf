@@ -129,6 +129,97 @@ resource "aws_eks_addon" "vpc_cni" {
   })
 }
 
+#############################
+# Karpenter Controller IAM Role 생성
+#############################
+resource "aws_iam_role" "karpenter_controller_role" {
+  name = "${var.project_name}-karpenter-controller-role"
+  assume_role_policy = jsonencode({
+    "Version" : "2012-10-17",
+    "Statement" : [
+      {
+        "Effect" : "Allow",
+        "Principal" : {
+          "Federated" : module.eks.oidc_provider_arn
+        },
+        "Action" : "sts:AssumeRoleWithWebIdentity",
+        "Condition" : {
+          "StringEquals" : {
+            "${local.oidc_provider}:sub" : "system:serviceaccount:karpenter:karpenter",
+            "${local.oidc_provider}:aud" : "sts.amazonaws.com"
+          }
+        }
+      }
+    ]
+  })
+}
+#############################
+# Karpenter Controller IAM Role에 Policy Attach
+#############################
+resource "aws_iam_role_policy_attachment" "karpenter_controller_role_attach" {
+  role       = aws_iam_role.karpenter_controller_role.name
+  policy_arn = aws_iam_policy.karpenter_controller_policy.arn
+}
+
+resource "aws_iam_policy" "karpenter_controller_policy" {
+  name        = "${var.project_name}-karpenter-controller-policy"
+  description = "Policy for AWS Karpenter Controller to manage Karpenter Nodes."
+  policy = jsonencode({
+    "Statement" : [
+      {
+        "Action" : [
+          "ssm:GetParameter",
+          "ec2:DescribeImages",
+          "ec2:RunInstances",
+          "ec2:DescribeSubnets",
+          "ec2:DescribeSecurityGroups",
+          "ec2:DescribeLaunchTemplates",
+          "ec2:DescribeInstances",
+          "ec2:DescribeInstanceTypes",
+          "ec2:DescribeInstanceTypeOfferings",
+          "ec2:DescribeAvailabilityZones",
+          "ec2:DeleteLaunchTemplate",
+          "ec2:CreateTags",
+          "ec2:CreateLaunchTemplate",
+          "ec2:CreateFleet",
+          "ec2:DescribeSpotPriceHistory",
+          "pricing:GetProducts"
+        ],
+        "Effect" : "Allow",
+        "Resource" : "*",
+        "Sid" : "Karpenter"
+      },
+      {
+        "Action" : "ec2:TerminateInstances",
+        "Condition" : {
+          "StringLike" : {
+            "ec2:ResourceTag/karpenter.sh/provisioner-name" : "*"
+          }
+        },
+        "Effect" : "Allow",
+        "Resource" : "*",
+        "Sid" : "ConditionalEC2Termination"
+      },
+      {
+        "Effect" : "Allow",
+        "Action" : "iam:PassRole",
+        "Resource" : "${var.iam_roles.karpenter_node_role.arn}",
+        "Sid" : "PassNodeIAMRole"
+      },
+      {
+        "Effect" : "Allow",
+        "Action" : "eks:DescribeCluster",
+        "Resource" : "${module.eks.cluster_arn}",
+        "Sid" : "EKSClusterEndpointLookup"
+      }
+    ],
+    "Version" : "2012-10-17"
+  })
+}
+
+#############################
+# ALB Controller IAM Role 생성
+#############################
 resource "aws_iam_role" "alb_controller_role" {
   name = "${var.project_name}-alb-controller-role"
   assume_role_policy = jsonencode({
@@ -150,6 +241,7 @@ resource "aws_iam_role" "alb_controller_role" {
     ]
   })
 }
+
 
 #############################
 #Role에 Policy Attach
