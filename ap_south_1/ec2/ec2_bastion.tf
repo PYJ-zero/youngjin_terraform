@@ -4,7 +4,7 @@ data "aws_ami" "amazon_linux_2023" {
   owners      = ["amazon"] # AWS 공식 AMI
   filter {
     name   = "name"
-    values = ["al2023-ami-*"] # Amazon Linux 2023 이미지 이름 패턴
+    values = ["al2023-ami-2023.*"] # Amazon Linux 2023 이미지 이름 패턴
   }
   filter {
     name   = "state"
@@ -13,7 +13,7 @@ data "aws_ami" "amazon_linux_2023" {
   filter {
     name   = "architecture"
     values = ["x86_64"]
-  }  
+  }
 }
 
 # 2. EC2 인스턴스 생성 모듈
