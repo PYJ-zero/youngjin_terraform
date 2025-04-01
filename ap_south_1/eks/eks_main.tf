@@ -11,7 +11,7 @@ module "eks" {
   cluster_name    = "${var.project_name}-eks-cluster-01"
   vpc_id          = var.vpc_id
   subnet_ids      = [for subnet in var.subnets.eks_subnets : subnet.id]
-  cluster_version = "1.29"
+  cluster_version = "1.31"
 
   cluster_endpoint_public_access  = true
   cluster_endpoint_private_access = true
@@ -37,8 +37,9 @@ module "eks" {
   eks_managed_node_groups = {
     "${var.project_name}-nodegroup-1" = {
       # Starting on 1.30, AL2023 is the default AMI type for EKS managed node groups
-      # ami_type = "BOTTLEROCKET_x86_64"
-      ami_type = "AL2_x86_64"
+      ami_type = "BOTTLEROCKET_x86_64"
+      # ami_type = "AL2_x86_64"
+
       # ami_id                 = local.custom_ami_id
       instance_types = ["t3a.large"]
 
@@ -86,7 +87,7 @@ module "eks" {
 resource "aws_eks_addon" "ebs_csi" {
   cluster_name                = module.eks.cluster_name
   addon_name                  = "aws-ebs-csi-driver"
-  addon_version               = "v1.36.0-eksbuild.1"
+  addon_version               = "v1.41.0-eksbuild.1"
   resolve_conflicts_on_create = "OVERWRITE"
   depends_on                  = [module.eks]
 }
@@ -94,14 +95,14 @@ resource "aws_eks_addon" "ebs_csi" {
 resource "aws_eks_addon" "efs_csi" {
   cluster_name                = module.eks.cluster_name
   addon_name                  = "aws-efs-csi-driver"
-  addon_version               = "v2.0.8-eksbuild.1"
+  addon_version               = "v2.1.7-eksbuild.1"
   resolve_conflicts_on_create = "OVERWRITE"
   depends_on                  = [module.eks]
 }
 resource "aws_eks_addon" "coredns" {
   cluster_name                = module.eks.cluster_name
   addon_name                  = "coredns"
-  addon_version               = "v1.11.3-eksbuild.1"
+  addon_version               = "v1.11.1-eksbuild.9"
   resolve_conflicts_on_create = "OVERWRITE"
   depends_on                  = [module.eks]
 }
@@ -109,7 +110,7 @@ resource "aws_eks_addon" "coredns" {
 resource "aws_eks_addon" "kube_proxy" {
   cluster_name                = module.eks.cluster_name
   addon_name                  = "kube-proxy"
-  addon_version               = "v1.29.7-eksbuild.5"
+  addon_version               = "v1.30.6-eksbuild.5"
   resolve_conflicts_on_create = "OVERWRITE"
   depends_on                  = [module.eks]
 }
@@ -117,7 +118,7 @@ resource "aws_eks_addon" "kube_proxy" {
 resource "aws_eks_addon" "vpc_cni" {
   cluster_name                = module.eks.cluster_name
   addon_name                  = "vpc-cni"
-  addon_version               = "v1.18.5-eksbuild.1"
+  addon_version               = "v1.19.0-eksbuild.1"
   resolve_conflicts_on_create = "OVERWRITE"
   depends_on                  = [module.eks]
   configuration_values = jsonencode({
