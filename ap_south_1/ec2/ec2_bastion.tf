@@ -112,7 +112,7 @@ module "ec2_instance" {
   CRED
   "
 
-  # velero install
+  # velero instal
   run_command "velero install \
     --provider aws \
     --plugins velero/velero-plugin-for-aws:v1.11.1 \
