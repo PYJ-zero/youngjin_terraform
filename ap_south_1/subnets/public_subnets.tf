@@ -10,6 +10,7 @@ resource "aws_subnet" "public_subnet_a" {
     nat                      = "true"
     type                     = "public"
     "kubernetes.io/role/elb" = "1"
+    "karpenter.sh/discovery" = "${var.project_name}-eks-cluster-01"
   }
 }
 
@@ -25,5 +26,6 @@ resource "aws_subnet" "public_subnet_c" {
     nat                      = "false"
     type                     = "public"
     "kubernetes.io/role/elb" = "1"
+    "karpenter.sh/discovery" = "${var.project_name}-eks-cluster-01"
   }
 }

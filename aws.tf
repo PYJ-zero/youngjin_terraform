@@ -20,7 +20,12 @@ terraform {
       source  = "hashicorp/cloudinit"
       version = "2.3.6"
     }
-  }
+    kubectl = {
+      source  = "gavinbunney/kubectl"
+      version = ">= 1.7.0"
+    }    
+  
+    }
 }
 
 ### 환경에 따라 자격 증명 변경 필요###
@@ -35,4 +40,3 @@ terraform {
 provider "aws" {
   region = "ap-south-1"
 }
-

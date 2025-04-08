@@ -23,6 +23,7 @@
  • **Add-ons (vpc-cni, kube-proxy, coredns)**를 Terraform에서 함께 설정
  • Velero 백업용 IAM User & S3 버킷(옵션)
  • 보안 그룹 및 IAM Role 등 기본 정책 설정
+ - Karpenter 설치
 
 # 구조 및 구성 요소
 
@@ -48,7 +49,7 @@
 
 ### 초기 설정
 
-1. 저장소를 클론합니다:
+1. 저장소를 클론합니다
 
    ```bash
    git clone https://github.com/PYJ-zero/youngjin_terraform.git

@@ -1,6 +1,59 @@
+terraform {
+  required_providers {
+    kubectl = {
+      source  = "gavinbunney/kubectl"
+      version = ">= 1.7.0"
+    }
+  }
+}
+
+provider "helm" {
+  kubernetes {
+    host                   = module.eks.cluster_endpoint
+    cluster_ca_certificate = base64decode(module.eks.cluster_certificate_authority_data)
+
+    exec {
+      api_version = "client.authentication.k8s.io/v1beta1"
+      command     = "aws"
+      # This requires the awscli to be installed locally where Terraform is executed
+      args = ["eks", "get-token", "--cluster-name", module.eks.cluster_name]
+    }
+  }
+}
+
+data "aws_eks_cluster_auth" "main" {
+  name = module.eks.cluster_name
+}
+
+provider "kubectl" {
+  host                   = module.eks.cluster_endpoint
+  cluster_ca_certificate = base64decode(module.eks.cluster_certificate_authority_data)
+  load_config_file       = false
+  token                  = data.aws_eks_cluster_auth.main.token
+  exec {
+    api_version = "client.authentication.k8s.io/v1beta1"
+    command     = "aws"
+    # This requires the awscli to be installed locally where Terraform is executed
+    args = ["eks", "get-token", "--cluster-name", module.eks.cluster_name]
+  }
+}
+
+provider "aws" {
+  region = "us-east-1"
+  alias  = "us_east"
+}
+
+data "aws_ecrpublic_authorization_token" "token" {
+  provider = aws.us_east
+}
+
 locals {
   oidc_provider = replace(module.eks.cluster_oidc_issuer_url, "https://", "")
-  custom_ami_id = "ami-08bf55c35587713e8"
+  name          = "${var.project_name}-eks-cluster-01"
+  tags = {
+    Project                  = "${var.project_name}"
+    "karpenter.sh/discovery" = "${var.project_name}-eks-cluster-01"
+  }
 }
 
 # EKS Cluster 생성
@@ -8,7 +61,7 @@ module "eks" {
   source  = "terraform-aws-modules/eks/aws"
   version = "~> 20.31"
 
-  cluster_name    = "${var.project_name}-eks-cluster-01"
+  cluster_name    = local.name
   vpc_id          = var.vpc_id
   subnet_ids      = [for subnet in var.subnets.eks_subnets : subnet.id]
   cluster_version = "1.30"
@@ -35,19 +88,15 @@ module "eks" {
   }
 
   eks_managed_node_groups = {
-    "${var.project_name}-nodegroup-1" = {
+    "${var.project_name}-ng-01" = {
       # Starting on 1.30, AL2023 is the default AMI type for EKS managed node groups
-      ami_type = "BOTTLEROCKET_x86_64"
-      # ami_type = "AL2_x86_64"
-
-      # ami_id                 = local.custom_ami_id
-      instance_types = ["t3a.large"]
-
-      create_worker_iam_role = false
-      worker_iam_role_arn    = var.iam_roles.eks_node_role.arn
-      name                   = "${var.project_name}-ng-1"
+      ami_type               = "BOTTLEROCKET_x86_64"
+      instance_types         = ["t3a.large"]
+      name                   = "${var.project_name}-ng-01"
       create_launch_template = true
-      launch_template_name   = "${var.project_name}-ng-1-lt"
+      launch_template_name   = "${var.project_name}-ng-01-lt"
+      create_iam_role        = false
+      iam_role_arn           = var.iam_roles.eks_node_role.arn
 
       subnet_ids = [for subnet in var.subnets.private_pri_subnets : subnet.id]
       # Amazon Linux 2 node groups do not require a specific settings block.
@@ -55,6 +104,10 @@ module "eks" {
       min_size     = 3
       max_size     = 3
       desired_size = 3
+      # labels = {
+      #   # Used to ensure Karpenter runs on nodes that it does not manage
+      #   "karpenter.sh/controller" = "true"
+      # }
     }
   }
 
@@ -80,10 +133,12 @@ module "eks" {
     }
   }
 
-  tags = {
-    Project = "${var.project_name}-eks-cluster"
-  }
+  node_security_group_tags = merge(local.tags, {
+    "karpenter.sh/discovery" = local.name
+  })
+  tags = local.tags
 }
+
 resource "aws_eks_addon" "ebs_csi" {
   cluster_name                = module.eks.cluster_name
   addon_name                  = "aws-ebs-csi-driver"
@@ -99,6 +154,7 @@ resource "aws_eks_addon" "efs_csi" {
   resolve_conflicts_on_create = "OVERWRITE"
   depends_on                  = [module.eks]
 }
+
 resource "aws_eks_addon" "coredns" {
   cluster_name                = module.eks.cluster_name
   addon_name                  = "coredns"
@@ -129,92 +185,138 @@ resource "aws_eks_addon" "vpc_cni" {
   })
 }
 
-#############################
-# Karpenter Controller IAM Role 생성
-#############################
-resource "aws_iam_role" "karpenter_controller_role" {
-  name = "${var.project_name}-karpenter-controller-role"
-  assume_role_policy = jsonencode({
-    "Version" : "2012-10-17",
-    "Statement" : [
-      {
-        "Effect" : "Allow",
-        "Principal" : {
-          "Federated" : module.eks.oidc_provider_arn
-        },
-        "Action" : "sts:AssumeRoleWithWebIdentity",
-        "Condition" : {
-          "StringEquals" : {
-            "${local.oidc_provider}:sub" : "system:serviceaccount:karpenter:karpenter",
-            "${local.oidc_provider}:aud" : "sts.amazonaws.com"
-          }
-        }
-      }
-    ]
-  })
-}
-#############################
-# Karpenter Controller IAM Role에 Policy Attach
-#############################
-resource "aws_iam_role_policy_attachment" "karpenter_controller_role_attach" {
-  role       = aws_iam_role.karpenter_controller_role.name
-  policy_arn = aws_iam_policy.karpenter_controller_policy.arn
+resource "aws_eks_addon" "pod_identity" {
+  cluster_name                = module.eks.cluster_name
+  addon_name                  = "eks-pod-identity-agent"
+  addon_version               = "v1.3.4-eksbuild.1"
+  resolve_conflicts_on_create = "OVERWRITE"
+  depends_on                  = [module.eks]
 }
 
-resource "aws_iam_policy" "karpenter_controller_policy" {
-  name        = "${var.project_name}-karpenter-controller-policy"
-  description = "Policy for AWS Karpenter Controller to manage Karpenter Nodes."
-  policy = jsonencode({
-    "Statement" : [
-      {
-        "Action" : [
-          "ssm:GetParameter",
-          "ec2:DescribeImages",
-          "ec2:RunInstances",
-          "ec2:DescribeSubnets",
-          "ec2:DescribeSecurityGroups",
-          "ec2:DescribeLaunchTemplates",
-          "ec2:DescribeInstances",
-          "ec2:DescribeInstanceTypes",
-          "ec2:DescribeInstanceTypeOfferings",
-          "ec2:DescribeAvailabilityZones",
-          "ec2:DeleteLaunchTemplate",
-          "ec2:CreateTags",
-          "ec2:CreateLaunchTemplate",
-          "ec2:CreateFleet",
-          "ec2:DescribeSpotPriceHistory",
-          "pricing:GetProducts"
-        ],
-        "Effect" : "Allow",
-        "Resource" : "*",
-        "Sid" : "Karpenter"
-      },
-      {
-        "Action" : "ec2:TerminateInstances",
-        "Condition" : {
-          "StringLike" : {
-            "ec2:ResourceTag/karpenter.sh/provisioner-name" : "*"
-          }
-        },
-        "Effect" : "Allow",
-        "Resource" : "*",
-        "Sid" : "ConditionalEC2Termination"
-      },
-      {
-        "Effect" : "Allow",
-        "Action" : "iam:PassRole",
-        "Resource" : "${var.iam_roles.karpenter_node_role.arn}",
-        "Sid" : "PassNodeIAMRole"
-      },
-      {
-        "Effect" : "Allow",
-        "Action" : "eks:DescribeCluster",
-        "Resource" : "${module.eks.cluster_arn}",
-        "Sid" : "EKSClusterEndpointLookup"
-      }
-    ],
-    "Version" : "2012-10-17"
-  })
+module "karpenter" {
+  source                 = "terraform-aws-modules/eks/aws//modules/karpenter"
+  enable_irsa            = true
+  irsa_oidc_provider_arn = module.eks.oidc_provider_arn
+  cluster_name           = local.name
+  namespace              = "karpenter"
+  enable_v1_permissions  = true
+
+  # Name needs to match role name passed to the EC2NodeClass
+
+  iam_role_name        = "${var.project_name}-karpenter-controller-role"
+  create_node_iam_role = true
+  node_iam_role_name   = "${var.project_name}-karpenter-node-role"
+
+  create_access_entry             = true
+  create_pod_identity_association = true
+
+  tags = local.tags
+}
+
+resource "helm_release" "karpenter" {
+  create_namespace = true
+  namespace        = "karpenter"
+  name             = "karpenter"
+
+  repository          = "oci://public.ecr.aws/karpenter"
+  repository_username = data.aws_ecrpublic_authorization_token.token.user_name
+  repository_password = data.aws_ecrpublic_authorization_token.token.password
+  chart               = "karpenter"
+  version             = "1.3.2"
+  wait                = false
+
+  values = [
+    <<-EOF
+    serviceAccount:
+      annotations:
+        eks.amazonaws.com/role-arn: "${module.karpenter.iam_role_arn}"
+    logLevel: debug
+    settings:
+      clusterName: "${module.eks.cluster_name}"
+      clusterEndpoint: "${module.eks.cluster_endpoint}"
+      interruptionQueue: "${module.karpenter.queue_name}"
+    controller:
+      resources:
+        requests:
+          cpu: 1
+          memory: 1Gi
+        limits:
+          cpu: 1
+          memory: 1Gi
+    EOF
+  ]
+}
+
+resource "kubectl_manifest" "karpenter_nodepool" {
+  yaml_body  = <<-YAML
+    apiVersion: karpenter.sh/v1
+    kind: NodePool
+    metadata:
+      name: "${var.project_name}-karpenter-nodepool"
+      namespace: karpenter
+    spec:
+      template:
+        spec:
+          requirements:
+            - key: "node.kubernetes.io/instance-type"
+              operator: In
+              values: ["t3a.large"]      
+          nodeClassRef:
+            group: karpenter.k8s.aws
+            kind: EC2NodeClass
+            name: "${var.project_name}-karpenter-nodeclass"
+            namespace: karpenter
+  YAML
+  depends_on = [helm_release.karpenter]
+}
+
+resource "kubectl_manifest" "karpenter_ec2nodeclass" {
+  yaml_body  = <<-YAML
+    apiVersion: karpenter.k8s.aws/v1
+    kind: EC2NodeClass
+    metadata:
+      name: "${var.project_name}-karpenter-nodeclass"
+      namespace: karpenter
+    spec:
+      kubelet:
+        podsPerCore: 4
+        maxPods: 40
+        systemReserved:
+          cpu: 100m
+          memory: 100Mi
+          ephemeral-storage: 1Gi
+        kubeReserved:
+          cpu: 200m
+          memory: 300Mi
+          ephemeral-storage: 3Gi
+        evictionHard:
+          memory.available: 5%
+          nodefs.available: 10%
+          nodefs.inodesFree: 10%
+        evictionSoft:
+          memory.available: 500Mi
+          nodefs.available: 15%
+          nodefs.inodesFree: 15%
+        evictionSoftGracePeriod:
+          memory.available: 1m
+          nodefs.available: 1m30s
+          nodefs.inodesFree: 2m
+        evictionMaxPodGracePeriod: 60
+        imageGCHighThresholdPercent: 85
+        imageGCLowThresholdPercent: 80
+        cpuCFSQuota: true
+      subnetSelectorTerms:
+        - tags:
+            karpenter.sh/discovery: ${module.eks.cluster_name}
+      securityGroupSelectorTerms:
+        - tags:
+            karpenter.sh/discovery: "${module.eks.cluster_name}"
+      role: "${module.karpenter.node_iam_role_arn}"
+      amiSelectorTerms:
+        - alias: bottlerocket@latest
+
+  YAML
+  depends_on = [helm_release.karpenter]
 }
 
 #############################
@@ -241,7 +343,6 @@ resource "aws_iam_role" "alb_controller_role" {
     ]
   })
 }
-
 
 #############################
 #Role에 Policy Attach

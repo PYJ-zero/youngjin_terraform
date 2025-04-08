@@ -72,6 +72,7 @@ module "eks" {
   vpc_id          = aws_vpc.vpc.id
   iam_roles       = module.iam.iam_roles
   security_groups = module.security_group.security_groups
+
 }
 
 # module "rds" {
