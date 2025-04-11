@@ -5,5 +5,7 @@ locals {
   redis_sg_desc      = local.redis_sg_name
   alb_sg_name        = "${var.project_name}-alb-sg"
   alb_sg_desc        = local.redis_sg_name
+  opensearch_sg_name = "${var.project_name}-opensearch-sg"
+  opensearch_sg_desc = local.opensearch_sg_name
   description_suffix = "by terraform"
 }

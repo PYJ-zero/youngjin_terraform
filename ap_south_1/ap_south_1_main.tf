@@ -134,3 +134,10 @@ module "iam" {
 #   vpc_id         = aws_vpc.vpc.id
 #   security_groups = module.security_group.security_groups
 # }
+
+# module "opensearch"{
+#   source = "./opensearch"
+#   project_name = var.project_name
+#   region_code = var.region_code
+#   security_groups = module.security_group.security_groups
+# }

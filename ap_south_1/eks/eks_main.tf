@@ -91,7 +91,7 @@ module "eks" {
     "${var.project_name}-ng-01" = {
       # Starting on 1.30, AL2023 is the default AMI type for EKS managed node groups
       ami_type               = "BOTTLEROCKET_x86_64"
-      instance_types         = ["t3a.large"]
+      instance_types         = ["c6a.large"]
       name                   = "${var.project_name}-ng-01"
       create_launch_template = true
       launch_template_name   = "${var.project_name}-ng-01-lt"
@@ -101,9 +101,9 @@ module "eks" {
       subnet_ids = [for subnet in var.subnets.private_pri_subnets : subnet.id]
       # Amazon Linux 2 node groups do not require a specific settings block.
       # Any custom configuration (e.g. user data modifications) should be handled via a launch template if needed.
-      min_size     = 3
-      max_size     = 3
-      desired_size = 3
+      min_size     = 1
+      max_size     = 1
+      desired_size = 1
       # labels = {
       #   # Used to ensure Karpenter runs on nodes that it does not manage
       #   "karpenter.sh/controller" = "true"
@@ -206,7 +206,7 @@ module "karpenter" {
   iam_role_name        = "${var.project_name}-karpenter-controller-role"
   create_node_iam_role = true
   node_iam_role_name   = "${var.project_name}-karpenter-node-role"
-
+  
   create_access_entry             = true
   create_pod_identity_association = true
 
@@ -243,8 +243,14 @@ resource "helm_release" "karpenter" {
         limits:
           cpu: 1
           memory: 1Gi
+    replicas: 1
     EOF
   ]
+}
+
+resource "aws_iam_role_policy_attachment" "karpenter_node_ebs_csi" {
+  role       = module.karpenter.node_iam_role_name
+  policy_arn = "arn:aws:iam::aws:policy/service-role/AmazonEBSCSIDriverPolicy"
 }
 
 resource "kubectl_manifest" "karpenter_nodepool" {
@@ -258,9 +264,12 @@ resource "kubectl_manifest" "karpenter_nodepool" {
       template:
         spec:
           requirements:
-            - key: "node.kubernetes.io/instance-type"
+            - key: "karpenter.k8s.aws/instance-family"
               operator: In
-              values: ["t3a.large"]      
+              values: ["c6a", "m6a"]
+            - key: "karpenter.k8s.aws/instance-size"
+              operator: In
+              values: ["medium", "large", "xlarge", "2xlarge", "4xlarge"]              
           nodeClassRef:
             group: karpenter.k8s.aws
             kind: EC2NodeClass
@@ -279,16 +288,16 @@ resource "kubectl_manifest" "karpenter_ec2nodeclass" {
       namespace: karpenter
     spec:
       kubelet:
-        podsPerCore: 4
-        maxPods: 40
+        podsPerCore: 10
+        maxPods: 110
         systemReserved:
           cpu: 100m
           memory: 100Mi
           ephemeral-storage: 1Gi
         kubeReserved:
           cpu: 200m
-          memory: 300Mi
-          ephemeral-storage: 3Gi
+          memory: 200Mi
+          ephemeral-storage: 2Gi
         evictionHard:
           memory.available: 5%
           nodefs.available: 10%
@@ -314,10 +323,111 @@ resource "kubectl_manifest" "karpenter_ec2nodeclass" {
       role: "${module.karpenter.node_iam_role_arn}"
       amiSelectorTerms:
         - alias: bottlerocket@latest
+      metadataOptions:
+        httpTokens: optional
+        httpEndpoint: enabled        
 
   YAML
   depends_on = [helm_release.karpenter]
 }
+
+# gp3 StorageClass 생성 (kubectl provider)
+resource "kubectl_manifest" "gp3_storageclass" {
+  yaml_body = <<-YAML
+    apiVersion: storage.k8s.io/v1
+    kind: StorageClass
+    metadata:
+      name: gp3
+      annotations:
+        storageclass.kubernetes.io/is-default-class: "true"
+    provisioner: ebs.csi.aws.com
+    parameters:
+      type: gp3
+      fsType: ext4
+      encrypted: "true"
+    reclaimPolicy: Delete
+    volumeBindingMode: WaitForFirstConsumer
+    allowVolumeExpansion: true
+  YAML
+
+  depends_on = [module.eks]
+}
+# #############################
+# # OpenSearch Helm
+# #############################
+# # Helm으로 OpenSearch 설치 (Terraform)
+# resource "helm_release" "opensearch" {
+#   name             = "opensearch"
+#   namespace        = "opensearch"
+#   repository       = "https://opensearch-project.github.io/helm-charts/"
+#   chart            = "opensearch"
+#   version          = "2.28.0"  
+#   create_namespace = true
+
+#   values = [
+#     <<-EOF
+#     clusterName: "${module.eks.cluster_name}"
+#     nodeGroup: "data"
+
+#     roles:
+#       - master
+#       - ingest
+#       - data
+
+#     replicas: 1
+#     minimumMasterNodes: 1
+
+#     persistence:
+#       enabled: true
+#       storageClass: "gp3"
+#       size: 10Gi
+
+#     resources:
+#       requests:
+#         cpu: 1000m
+#         memory: 512Mi
+#       limits:
+#         cpu: 2000m
+#         memory: 1Gi
+
+#     service:
+#       type: ClusterIP
+#       ports:
+#         http: 9200
+#         transport: 9300
+
+#     securityConfig:
+#       enabled: true
+
+#     opensearchSecurity:
+#       enabled: true
+#       config:
+#         enableDemo: true
+#       secret:
+#         create: true
+#         password: "Changeme123!@#" # Replace in prod!
+
+#     networkPolicy:
+#       enabled: false
+
+#     podSecurityContext:
+#       fsGroup: 1000
+
+#     extraEnvs:
+#       - name: OPENSEARCH_INITIAL_ADMIN_PASSWORD
+#         value: "Changeme123!@#"
+
+#     volumeClaimTemplate:
+#       accessModes: ["ReadWriteOnce"]
+#       storageClassName: "gp3"
+#       resources:
+#         requests:
+#           storage: 10Gi
+#     EOF
+#   ]
+
+#   depends_on = [module.eks]
+# }
 
 #############################
 # ALB Controller IAM Role 생성

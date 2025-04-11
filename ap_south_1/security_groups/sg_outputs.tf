@@ -3,5 +3,6 @@ output "security_groups" {
     redis_sg   = aws_security_group.redis_sg
     bastion_sg = aws_security_group.bastion_sg
     alb_sg     = aws_security_group.alb_sg
+    opensearch_sg = aws_security_group.opensearch_sg
   }
 }

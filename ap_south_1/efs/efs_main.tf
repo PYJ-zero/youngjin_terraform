@@ -22,7 +22,7 @@ module "efs" {
       subnet_id = var.subnets.private_pri_c_subnets.id
     }
   }
-  security_group_description = "Youngjin EFS SG"
+  security_group_description = "${var.project_name} EFS SG"
   security_group_vpc_id      = var.vpc_id
   security_group_rules = {
     vpc = {
